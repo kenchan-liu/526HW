@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "526.sln"
+    "dotnet.defaultSolution": "526HW.sln"
 }
