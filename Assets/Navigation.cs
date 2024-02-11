@@ -7,13 +7,14 @@ public class Navigation : MonoBehaviour
 {
     public Transform player;
     private NavMeshAgent agent;
+    public GameObject gameover;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        NavMeshHit closestHit;
         agent.updateRotation = false;
         agent.updateUpAxis = false;
         agent.SetDestination(player.position);
+        gameover.SetActive(false);
     }
 
     void Update()
@@ -21,8 +22,14 @@ public class Navigation : MonoBehaviour
         if(player != null)
         {
             agent.SetDestination(player.position);
+            //caught player, stop moving, show game over
+            if(Vector3.Distance(player.position, transform.position) < 1.5f)
+            {
+                agent.isStopped = true;
+                Debug.Log("Game Over");
+                gameover.SetActive(true);
+            }
         }
-        Debug.Log("Destination: " + agent.destination);
 
 
     }

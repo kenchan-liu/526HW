@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool isImmobilized = false;
     private Color originalColor;
+    public Transform enemy;
 
     void Start()
     {
@@ -23,6 +24,13 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (enemy != null && !isImmobilized)
+        {
+            if (Vector3.Distance(enemy.position, transform.position) < 1.5f)
+            {   
+                isImmobilized = true;
+            }
+        }
         if (!isImmobilized) // 如果没有被定住
         {
             Move();
@@ -70,7 +78,7 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.color = originalColor; // 将球体颜色改为原本颜色
         }
     }
-        IEnumerator Immobilize(float time)
+    IEnumerator Immobilize(float time)
     {
         isImmobilized = true; // 开始定住
         rb2d.velocity = Vector2.zero; // 立即停止所有运动
