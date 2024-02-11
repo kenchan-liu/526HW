@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool isImmobilized = false;
     private Color originalColor;
+    private bool canMoveFreely = false; // 控制自由移动的布尔变量
 
     void Start()
     {
@@ -23,6 +24,15 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        // 自由移动时，允许上下移动
+        float moveVertical = canMoveFreely ? Input.GetAxis("Vertical") : 0;
+        if (canMoveFreely)
+        {
+            // 失去重力时的自由移动
+            Vector2 movement = new Vector2(moveHorizontal, moveVertical) * speed;
+            rb2d.velocity = movement;
+        }
         if (!isImmobilized) // 如果没有被定住
         {
             Move();
@@ -70,7 +80,25 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.color = originalColor; // 将球体颜色改为原本颜色
         }
     }
-        IEnumerator Immobilize(float time)
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.CompareTag("Tool"))
+        {
+            StartCoroutine(TemporaryLoseGravity(3f));
+        }
+    }
+    IEnumerator TemporaryLoseGravity(float duration)
+    {
+        float originalGravity = rb2d.gravityScale;
+        rb2d.gravityScale = 0; // 玩家失去重力
+        canMoveFreely = true; // 允许玩家自由移动
+
+        yield return new WaitForSeconds(duration); // 等待指定时间
+
+        rb2d.gravityScale = originalGravity; // 恢复重力
+        canMoveFreely = false; // 恢复正常移动限制
+    }
+    IEnumerator Immobilize(float time)
     {
         isImmobilized = true; // 开始定住
         rb2d.velocity = Vector2.zero; // 立即停止所有运动
