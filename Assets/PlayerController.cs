@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement; // 用于访问场景管理
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -68,6 +69,10 @@ public class PlayerController : MonoBehaviour
         {
             spriteRenderer.color = Color.green; // 将球体颜色改为绿色
         }
+        if (other.gameObject.CompareTag("Chaser")) // 确保玩家 GameObject 有 "Player" 标签
+        {
+            ReloadScene();
+        }
     }
     void OnCollisionExit2D(Collision2D other)
     {
@@ -92,9 +97,7 @@ public class PlayerController : MonoBehaviour
         float originalGravity = rb2d.gravityScale;
         rb2d.gravityScale = 0; // 玩家失去重力
         canMoveFreely = true; // 允许玩家自由移动
-
         yield return new WaitForSeconds(duration); // 等待指定时间
-
         rb2d.gravityScale = originalGravity; // 恢复重力
         canMoveFreely = false; // 恢复正常移动限制
     }
@@ -108,5 +111,10 @@ public class PlayerController : MonoBehaviour
         //rb2d.isKinematic = false; // 将 Rigidbody2D 恢复
         isImmobilized = false; // 解除定住状态
         spriteRenderer.color = originalColor; // 恢复球体的原始颜色
+    }
+    void ReloadScene()
+    {
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex; // 获取当前场景的索引
+        SceneManager.LoadScene(currentSceneIndex); // 重新加载当前场景
     }
 }

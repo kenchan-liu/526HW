@@ -9,6 +9,7 @@ TagManager:
   - Goal
   - Obstacle
   - Tool
+  - Chaser
   layers:
   - Default
   - TransparentFX

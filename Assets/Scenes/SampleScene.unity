@@ -1680,8 +1680,8 @@ GameObject:
   - component: {fileID: 606719002}
   - component: {fileID: 606719007}
   m_Layer: 0
-  m_Name: Attack
-  m_TagString: Untagged
+  m_Name: Chaser
+  m_TagString: Chaser
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
