@@ -10,6 +10,7 @@ public class Navigation : MonoBehaviour
     public NavMeshAgent agent;
     public GameObject gameover;
     public GameObject restart;
+    public bool getconfused = false;
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -22,7 +23,7 @@ public class Navigation : MonoBehaviour
 
     void Update()
     {
-        if (player != null)
+        if (player != null && !getconfused)
         {
             agent.SetDestination(player.position);
             //caught player, stop moving, show game over

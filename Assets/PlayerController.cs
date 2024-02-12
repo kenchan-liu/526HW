@@ -35,6 +35,13 @@ public class PlayerController : MonoBehaviour
     public int possession = 0;
     public GameObject gtool;
 
+
+    // nisemono navmesh
+    public Navigation navi;
+    public Transform fbuild;
+    public GameObject fgoal;
+    public bool haveftool = false;
+
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
@@ -125,6 +132,11 @@ public class PlayerController : MonoBehaviour
             else{
                 directionIndicator.enabled = false;
             }
+            if (Vector2.Distance(fbuild.position, transform.position) < 0.5f)
+            {
+                haveftool = true;
+                fgoal.SetActive(false);
+            }
             if (Vector2.Distance(gravityTool.position, transform.position) < 0.5f)
             {
                 possession += 1;
@@ -149,9 +161,20 @@ public class PlayerController : MonoBehaviour
                 {
                     possession -= 1;
                     // time duration
-                    StartCoroutine(Gleftside(3f));
+                    StartCoroutine(Gleftside(5f));
                 }
 
+            }
+            if (haveftool)
+            {
+                if (Input.GetKeyDown(KeyCode.F))
+                {
+                    fgoal.SetActive(true);
+                    navi.getconfused = true;
+                    //set agent destination as fake for 3 seconds, then set back to player
+                    StartCoroutine(FakeGoal(3f));
+                    haveftool = false;
+                }
             }
         }
         // 如果重启的UI显示，并且玩家按下了F键，则重新加载当前场景
@@ -159,6 +182,17 @@ public class PlayerController : MonoBehaviour
         {
             ReloadCurrentScene();
         }
+    }
+    IEnumerator FakeGoal(float duration)
+    {
+        navi.agent.SetDestination(fbuild.position);
+        Debug.Log(navi.agent.destination);
+
+        yield return new WaitForSeconds(duration);
+        navi.getconfused = false;
+        Debug.Log(navi.agent.destination);
+
+        
     }
     IEnumerator Gupside(float duration)
     {
