@@ -221,7 +221,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        Vector2 v = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y);
+        Vector2 v = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y/9.8f);
         rb2d.AddForce(v * jumpForce, ForceMode2D.Impulse);
     }
     void Move()
