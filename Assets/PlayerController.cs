@@ -19,6 +19,16 @@ public class PlayerController : MonoBehaviour
     public GameObject success;
     public GameObject restart;
 
+    // Cannon launch direction indicator
+    public LineRenderer directionIndicator;
+    
+    public Transform CannonPlace;
+    
+    public Vector2 launchDirection = Vector2.right;
+    public float forceMagnitude = 1000f;
+    public bool launch = false;
+
+
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
@@ -26,6 +36,30 @@ public class PlayerController : MonoBehaviour
         originalColor = spriteRenderer.color; // 保存原始颜色
         success.SetActive(false);
         restart.SetActive(false);
+    }
+
+    void UpdateDirectionIndicator()
+    {
+        if (directionIndicator != null)
+        {
+            directionIndicator.SetPosition(0, transform.position);
+            directionIndicator.SetPosition(1, transform.position + new Vector3(launchDirection.x, launchDirection.y, 0) * 6);
+        }
+    }
+    void FixedUpdate()
+    {
+        if (launch)
+        {
+            LaunchPlayer();
+            launch = false;
+        }
+    }
+
+    void LaunchPlayer()
+    {
+        rb2d.AddForce(launchDirection * forceMagnitude,ForceMode2D.Impulse); 
+        GetComponent<Collider2D>().sharedMaterial.bounciness = 0.2f; //
+
     }
 
     void Update()
@@ -53,6 +87,39 @@ public class PlayerController : MonoBehaviour
             {
                 Jump();
             }
+                        if (Vector3.Distance(CannonPlace.position, transform.position) < 0.5f)
+            {
+                UpdateDirectionIndicator();
+                directionIndicator.enabled = true;
+                if (Input.GetKeyDown(KeyCode.Alpha1)|| Input.GetKeyDown(KeyCode.Keypad1)){
+                    launchDirection = RotateVector2(launchDirection, 5); // Counterclockwise rotation
+                    UpdateDirectionIndicator();
+                }
+                else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+                {
+                    launchDirection = RotateVector2(launchDirection, -5); // clockwise rotation
+                    UpdateDirectionIndicator();
+                }
+
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)|| Input.GetKeyDown(KeyCode.Alpha2))
+                {
+                    if (GetComponent<Collider2D>() != null && GetComponent<Collider2D>().sharedMaterial != null)
+                    {
+                        GetComponent<Collider2D>().sharedMaterial.bounciness = 1; 
+                    }
+
+                    launch = true;
+                    if (GetComponent<Collider2D>() != null && GetComponent<Collider2D>().sharedMaterial != null)
+                    {
+                        GetComponent<Collider2D>().sharedMaterial.bounciness = 0.2f;
+                    }
+                }
+
+            }
+            else{
+                directionIndicator.enabled = false;
+            }
+
         }
         // 如果重启的UI显示，并且玩家按下了F键，则重新加载当前场景
         if (restart.activeSelf && Input.GetKeyDown(KeyCode.F))
@@ -101,6 +168,20 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.color = originalColor; // 将球体颜色改为原本颜色
         }
     }
+    Vector2 RotateVector2(Vector2 v, float degrees)
+    {
+        float radians = degrees * Mathf.Deg2Rad;
+        float sin = Mathf.Sin(radians);
+        float cos = Mathf.Cos(radians);
+
+        float tx = v.x;
+        float ty = v.y;
+
+        v.x = (cos * tx) - (sin * ty);
+        v.y = (sin * tx) + (cos * ty);
+        return v;
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Tool"))
