@@ -2191,6 +2191,7 @@ MonoBehaviour:
   agent: {fileID: 0}
   gameover: {fileID: 1799819425}
   restart: {fileID: 1367887096}
+  getconfused: 0
 --- !u!195 &606719008
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5082,7 +5083,7 @@ MonoBehaviour:
   gravityTool: {fileID: 1590142386}
   possession: 0
   gtool: {fileID: 1590142385}
-  navi: {fileID: 0}
+  navi: {fileID: 606719007}
   fbuild: {fileID: 928667005}
   fgoal: {fileID: 928667004}
   haveftool: 0
