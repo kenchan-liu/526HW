@@ -22,12 +22,18 @@ public class PlayerController : MonoBehaviour
     // Cannon launch direction indicator
     public LineRenderer directionIndicator;
     
+
     public Transform CannonPlace;
     
     public Vector2 launchDirection = Vector2.right;
     public float forceMagnitude = 1000f;
     public bool launch = false;
 
+
+    // gravity tool
+    public Transform gravityTool;
+    public int possession = 0;
+    public GameObject gtool;
 
     void Start()
     {
@@ -87,7 +93,7 @@ public class PlayerController : MonoBehaviour
             {
                 Jump();
             }
-                        if (Vector3.Distance(CannonPlace.position, transform.position) < 0.5f)
+            if (Vector3.Distance(CannonPlace.position, transform.position) < 0.5f)
             {
                 UpdateDirectionIndicator();
                 directionIndicator.enabled = true;
@@ -119,13 +125,64 @@ public class PlayerController : MonoBehaviour
             else{
                 directionIndicator.enabled = false;
             }
+            if (Vector2.Distance(gravityTool.position, transform.position) < 0.5f)
+            {
+                possession += 1;
+                gtool.SetActive(false);
 
+            }
+            if (possession > 0)
+            {
+                if (Input.GetKeyDown(KeyCode.G))
+                {
+                    possession -= 1;
+                    // time duration
+                    StartCoroutine(Gupside(3f));
+                }
+                else if (Input.GetKeyDown(KeyCode.H))
+                {
+                    possession -= 1;
+                    // time duration
+                    StartCoroutine(Grightside(3f));
+                }
+                else if (Input.GetKeyDown(KeyCode.J))
+                {
+                    possession -= 1;
+                    // time duration
+                    StartCoroutine(Gleftside(3f));
+                }
+
+            }
         }
         // 如果重启的UI显示，并且玩家按下了F键，则重新加载当前场景
         if (restart.activeSelf && Input.GetKeyDown(KeyCode.F))
         {
             ReloadCurrentScene();
         }
+    }
+    IEnumerator Gupside(float duration)
+    {
+        Vector2 originalGravity = Physics2D.gravity;
+        Physics2D.gravity = new Vector2(-originalGravity.x, -originalGravity.y);
+        
+        yield return new WaitForSeconds(duration);
+        Physics2D.gravity = originalGravity;
+    }
+    IEnumerator Grightside(float duration)
+    {
+        Vector2 originalGravity = Physics2D.gravity;
+        Physics2D.gravity = new Vector2(originalGravity.y, originalGravity.x);
+        
+        yield return new WaitForSeconds(duration); 
+        Physics2D.gravity = originalGravity;
+    }
+    IEnumerator Gleftside(float duration)
+    {
+        Vector2 originalGravity = Physics2D.gravity;
+        Physics2D.gravity = new Vector2(-originalGravity.y, originalGravity.x);
+        
+        yield return new WaitForSeconds(duration); 
+        Physics2D.gravity = originalGravity; // 恢复重力
     }
 
     void Jump()
