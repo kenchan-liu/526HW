@@ -42,6 +42,9 @@ public class PlayerController : MonoBehaviour
     public GameObject fgoal;
     public bool haveftool = false;
 
+    public bool isCooldown = false; // 陷阱是否处于冷却状态
+    public float cooldownTime = 1f; // 陷阱的冷却时间
+
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
@@ -151,7 +154,7 @@ public class PlayerController : MonoBehaviour
                     // time duration
                     StartCoroutine(Gupside(3f));
                 }
-                else if (Input.GetKeyDown(KeyCode.H))
+                /*else if (Input.GetKeyDown(KeyCode.H))
                 {
                     possession -= 1;
                     // time duration
@@ -161,8 +164,8 @@ public class PlayerController : MonoBehaviour
                 {
                     possession -= 1;
                     // time duration
-                    StartCoroutine(Gleftside(5f));
-                }
+                    StartCoroutine(Gleftside(3f));
+                }*/
 
             }
             if (haveftool)
@@ -185,43 +188,42 @@ public class PlayerController : MonoBehaviour
     }
     IEnumerator FakeGoal(float duration)
     {
+        Debug.Log("fuse");
         navi.agent.SetDestination(fbuild.position);
         Debug.Log(navi.agent.destination);
-
         yield return new WaitForSeconds(duration);
         navi.getconfused = false;
         Debug.Log(navi.agent.destination);
-
-        
     }
     IEnumerator Gupside(float duration)
     {
         Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = new Vector2(-originalGravity.x, -originalGravity.y);
-        
+        Physics2D.gravity = new Vector2(originalGravity.x, -originalGravity.y);
+        Debug.Log(Physics2D.gravity);
         yield return new WaitForSeconds(duration);
         Physics2D.gravity = originalGravity;
     }
-    IEnumerator Grightside(float duration)
+    /*IEnumerator Grightside(float duration)
     {
         Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = new Vector2(originalGravity.y, originalGravity.x);
-        
+        Physics2D.gravity = new Vector2(-originalGravity.y, originalGravity.x);
+        Debug.Log(Physics2D.gravity);
         yield return new WaitForSeconds(duration); 
         Physics2D.gravity = originalGravity;
     }
     IEnumerator Gleftside(float duration)
     {
         Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = new Vector2(-originalGravity.y, originalGravity.x);
-        
+        Physics2D.gravity = new Vector2(originalGravity.y, originalGravity.x);
+        Debug.Log(Physics2D.gravity);
         yield return new WaitForSeconds(duration); 
         Physics2D.gravity = originalGravity; // 恢复重力
-    }
+    }*/
 
     void Jump()
     {
-        rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        Vector2 v = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y);
+        rb2d.AddForce(v * jumpForce, ForceMode2D.Impulse);
     }
     void Move()
     {
@@ -231,9 +233,10 @@ public class PlayerController : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.gameObject.CompareTag("Trap")) // 检测是否碰撞到trap地板
+        if (other.gameObject.CompareTag("Trap") && !isCooldown) // 检测是否碰撞到trap地板
         {
-            StartCoroutine(Immobilize(immobilizeTime));
+            StartCoroutine(Immobilize(immobilizeTime, other.gameObject));
+            StartCoroutine(Cooldown());
         }
         if (other.gameObject.CompareTag("Ground"))
         {
@@ -264,10 +267,8 @@ public class PlayerController : MonoBehaviour
         float radians = degrees * Mathf.Deg2Rad;
         float sin = Mathf.Sin(radians);
         float cos = Mathf.Cos(radians);
-
         float tx = v.x;
         float ty = v.y;
-
         v.x = (cos * tx) - (sin * ty);
         v.y = (sin * tx) + (cos * ty);
         return v;
@@ -289,21 +290,31 @@ public class PlayerController : MonoBehaviour
         rb2d.gravityScale = originalGravity; // 恢复重力
         canMoveFreely = false; // 恢复正常移动限制
     }
-    IEnumerator Immobilize(float time)
+    IEnumerator Immobilize(float time, GameObject other)
     {
-        isImmobilized = true; // 开始定住
-        rb2d.velocity = Vector2.zero; // 立即停止所有运动
-        //rb2d.isKinematic = true; // 将 Rigidbody2D 设置为 Kinematic，禁用所有物理效果
-        spriteRenderer.color = Color.red; // 将球体颜色改为红色
-        yield return new WaitForSeconds(time); // 等待一段时间
-        //rb2d.isKinematic = false; // 将 Rigidbody2D 恢复
-        isImmobilized = false; // 解除定住状态
-        spriteRenderer.color = originalColor; // 恢复球体的原始颜色
+        isImmobilized = true;
+        rb2d.velocity = Vector2.zero;
+        spriteRenderer.color = Color.red;
+        SpriteRenderer renderer = other.GetComponent<SpriteRenderer>();
+        renderer.color = Color.red;
+        yield return new WaitForSeconds(time);
+        isImmobilized = false;
+        spriteRenderer.color = originalColor;
+        renderer.color = originalColor;
+    }
+    IEnumerator Cooldown()
+    {
+        isCooldown = true; // 开始冷却
+        yield return new WaitForSeconds(cooldownTime); // 等待冷却时间
+        isCooldown = false; // 结束冷却
     }
     void ReloadCurrentScene()
     {
         Time.timeScale = 1; // 场景运动
         int sceneIndex = SceneManager.GetActiveScene().buildIndex; // 获取当前场景的索引
         SceneManager.LoadScene(sceneIndex); // 根据索引重新加载场景
+        possession = 0;
+        Vector2 originalGravity = Physics2D.gravity;
+        Physics2D.gravity = originalGravity;
     }
 }
