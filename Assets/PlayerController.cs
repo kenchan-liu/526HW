@@ -9,19 +9,24 @@ public class PlayerController : MonoBehaviour
     public float speed; // 控制角色移动速度
     public KeyCode jumpKey = KeyCode.Space; // 跳跃按键，默认为空格键
     private Rigidbody2D rb2d;
+
     private bool isGrounded; // 是否接触地面
     public float immobilizeTime; // 球体不能移动的时间
     private SpriteRenderer spriteRenderer;
     private bool isImmobilized = false;
+
     private Color originalColor;
+
     public Transform enemy;
+
     private bool canMoveFreely = false; // 控制自由移动的布尔变量
+    public float FreeFlytime;
     public GameObject success;
     public GameObject restart;
 
     // Cannon launch direction indicator
     public LineRenderer directionIndicator;
-    
+    public float launchSpeed;  // 控制发射速度的参数
 
     public Transform CannonPlace;
     
@@ -29,12 +34,10 @@ public class PlayerController : MonoBehaviour
     public float forceMagnitude = 1000f;
     public bool launch = false;
 
-
     // gravity tool
     public Transform gravityTool;
     public int possession = 0;
     public GameObject gtool;
-
 
     // nisemono navmesh
     public Navigation navi;
@@ -43,7 +46,7 @@ public class PlayerController : MonoBehaviour
     public bool haveftool = false;
 
     public bool isCooldown = false; // 陷阱是否处于冷却状态
-    public float cooldownTime = 1f; // 陷阱的冷却时间
+    public float cooldownTime = 0.6f; // 陷阱的冷却时间
 
     void Start()
     {
@@ -75,7 +78,6 @@ public class PlayerController : MonoBehaviour
     {
         rb2d.AddForce(launchDirection * forceMagnitude,ForceMode2D.Impulse); 
         GetComponent<Collider2D>().sharedMaterial.bounciness = 0.2f; //
-
     }
 
     void Update()
@@ -91,7 +93,7 @@ public class PlayerController : MonoBehaviour
         }
         if (enemy != null && !isImmobilized)
         {
-            if (Vector3.Distance(enemy.position, transform.position) < 1.5f)
+            if (Vector3.Distance(enemy.position, transform.position) < 0.8f)
             {   
                 isImmobilized = true;
             }
@@ -107,32 +109,32 @@ public class PlayerController : MonoBehaviour
             {
                 UpdateDirectionIndicator();
                 directionIndicator.enabled = true;
-                if (Input.GetKeyDown(KeyCode.Alpha1)|| Input.GetKeyDown(KeyCode.Keypad1)){
-                    launchDirection = RotateVector2(launchDirection, 5); // Counterclockwise rotation
-                    UpdateDirectionIndicator();
+
+                // 调整发射方向
+                if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+                {
+                    launchDirection = RotateVector2(launchDirection, 5); // 逆时针旋转
+                    UpdateDirectionIndicator(); // 更新方向指示器
                 }
                 else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
                 {
-                    launchDirection = RotateVector2(launchDirection, -5); // clockwise rotation
-                    UpdateDirectionIndicator();
+                    launchDirection = RotateVector2(launchDirection, -5); // 顺时针旋转
+                    UpdateDirectionIndicator(); // 更新方向指示器
                 }
-
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)|| Input.GetKeyDown(KeyCode.Alpha2))
+                // 发射
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                 {
-                    if (GetComponent<Collider2D>() != null && GetComponent<Collider2D>().sharedMaterial != null)
+                    // 使用Rigidbody2D给物体一个初速度来发射
+                    Rigidbody2D rb = GetComponent<Rigidbody2D>();
+                    if (rb != null)
                     {
-                        GetComponent<Collider2D>().sharedMaterial.bounciness = 1; 
+                        rb.velocity = new Vector2(launchDirection.x, launchDirection.y) * launchSpeed;
                     }
-
                     launch = true;
-                    if (GetComponent<Collider2D>() != null && GetComponent<Collider2D>().sharedMaterial != null)
-                    {
-                        GetComponent<Collider2D>().sharedMaterial.bounciness = 0.2f;
-                    }
                 }
-
             }
-            else{
+            else
+            {
                 directionIndicator.enabled = false;
             }
             if (Vector2.Distance(fbuild.position, transform.position) < 0.5f)
@@ -174,7 +176,6 @@ public class PlayerController : MonoBehaviour
                 {
                     fgoal.SetActive(true);
                     navi.getconfused = true;
-                    //set agent destination as fake for 3 seconds, then set back to player
                     StartCoroutine(FakeGoal(3f));
                     haveftool = false;
                 }
@@ -184,6 +185,11 @@ public class PlayerController : MonoBehaviour
         if (restart.activeSelf && Input.GetKeyDown(KeyCode.F))
         {
             ReloadCurrentScene();
+        }
+        // Check if the ESC key is pressed
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SceneManager.LoadScene("Home");
         }
     }
     IEnumerator FakeGoal(float duration)
@@ -222,7 +228,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        Vector2 v = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y);
+        Vector2 v = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y/9.8f);
         rb2d.AddForce(v * jumpForce, ForceMode2D.Impulse);
     }
     void Move()
@@ -267,18 +273,14 @@ public class PlayerController : MonoBehaviour
         float radians = degrees * Mathf.Deg2Rad;
         float sin = Mathf.Sin(radians);
         float cos = Mathf.Cos(radians);
-        float tx = v.x;
-        float ty = v.y;
-        v.x = (cos * tx) - (sin * ty);
-        v.y = (sin * tx) + (cos * ty);
-        return v;
+        return new Vector2(cos * v.x - sin * v.y, sin * v.x + cos * v.y);
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Tool"))
         {
-            StartCoroutine(TemporaryLoseGravity(3f));
+            StartCoroutine(TemporaryLoseGravity(FreeFlytime));
         }
     }
     IEnumerator TemporaryLoseGravity(float duration)

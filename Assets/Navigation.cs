@@ -27,7 +27,7 @@ public class Navigation : MonoBehaviour
         {
             agent.SetDestination(player.position);
             //caught player, stop moving, show game over
-            if (Vector3.Distance(player.position, transform.position) < 1f)
+            if (Vector3.Distance(player.position, transform.position) < 0.8f)
             {
                 agent.isStopped = true;
                 Debug.Log("Game Over");
