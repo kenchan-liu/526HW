@@ -30,7 +30,6 @@ public class Navigation : MonoBehaviour
             if (Vector3.Distance(player.position, transform.position) < 0.8f)
             {
                 agent.isStopped = true;
-                Debug.Log("Game Over");
                 gameover.SetActive(true);
                 restart.SetActive(true);
             }

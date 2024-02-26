@@ -65,20 +65,6 @@ public class PlayerController : MonoBehaviour
             directionIndicator.SetPosition(1, transform.position + new Vector3(launchDirection.x, launchDirection.y, 0) * 6);
         }
     }
-    void FixedUpdate()
-    {
-        if (launch)
-        {
-            LaunchPlayer();
-            launch = false;
-        }
-    }
-
-    void LaunchPlayer()
-    {
-        rb2d.AddForce(launchDirection * forceMagnitude,ForceMode2D.Impulse); 
-        GetComponent<Collider2D>().sharedMaterial.bounciness = 0.2f; //
-    }
 
     void Update()
     {
@@ -154,7 +140,8 @@ public class PlayerController : MonoBehaviour
                 {
                     possession -= 1;
                     // time duration
-                    StartCoroutine(Gupside(3f));
+                    //StartCoroutine(Gupside());
+                    Gupside();
                 }
                 /*else if (Input.GetKeyDown(KeyCode.H))
                 {
@@ -201,13 +188,12 @@ public class PlayerController : MonoBehaviour
         navi.getconfused = false;
         Debug.Log(navi.agent.destination);
     }
-    IEnumerator Gupside(float duration)
+    void Gupside()
     {
-        Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = new Vector2(originalGravity.x, -originalGravity.y);
-        Debug.Log(Physics2D.gravity);
-        yield return new WaitForSeconds(duration);
-        Physics2D.gravity = originalGravity;
+        // Vector2 originalGravity = Physics2D.gravity;
+        // Physics2D.gravity = new Vector2(originalGravity.x, -originalGravity.y);
+        Physics2D.gravity = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y);
+        // Physics2D.gravity = originalGravity;
     }
     /*IEnumerator Grightside(float duration)
     {
@@ -316,7 +302,8 @@ public class PlayerController : MonoBehaviour
         int sceneIndex = SceneManager.GetActiveScene().buildIndex; // 获取当前场景的索引
         SceneManager.LoadScene(sceneIndex); // 根据索引重新加载场景
         possession = 0;
+
         Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = originalGravity;
+        Physics2D.gravity = new Vector2(0, -9.81f);
     }
 }
