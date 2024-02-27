@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour
 
     // Cannon launch direction indicator
     public LineRenderer directionIndicator;
-    public float launchSpeed;  // 控制发射速度的参数
+    public float launchForce;  // 控制发射速度的参数
 
     public Transform CannonPlace;
     
@@ -111,10 +111,18 @@ public class PlayerController : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                 {
                     // 使用Rigidbody2D给物体一个初速度来发射
-                    Rigidbody2D rb = GetComponent<Rigidbody2D>();
+                    /*Rigidbody2D rb = GetComponent<Rigidbody2D>();
                     if (rb != null)
                     {
                         rb.velocity = new Vector2(launchDirection.x, launchDirection.y) * launchSpeed;
+                    }
+                    launch = true;*/
+                    // 获取 Rigidbody2D 组件
+                    Rigidbody2D rb = GetComponent<Rigidbody2D>();
+                    if (rb != null)
+                    {
+                        // 应用一个冲量，而不是设置初速度
+                        rb.AddForce(new Vector2(launchDirection.x, launchDirection.y) * launchForce, ForceMode2D.Impulse);
                     }
                     launch = true;
                 }
