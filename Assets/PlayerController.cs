@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviour
     public float FreeFlytime;
     public GameObject success;
     public GameObject restart;
+    public GameObject nextlevel;
+    public string nextsceneName;
 
     // Cannon launch direction indicator
     public LineRenderer directionIndicator;
@@ -55,6 +57,7 @@ public class PlayerController : MonoBehaviour
         originalColor = spriteRenderer.color; // 保存原始颜色
         success.SetActive(false);
         restart.SetActive(false);
+        nextlevel.SetActive(false);
     }
 
     void UpdateDirectionIndicator()
@@ -110,13 +113,6 @@ public class PlayerController : MonoBehaviour
                 // 发射
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                 {
-                    // 使用Rigidbody2D给物体一个初速度来发射
-                    /*Rigidbody2D rb = GetComponent<Rigidbody2D>();
-                    if (rb != null)
-                    {
-                        rb.velocity = new Vector2(launchDirection.x, launchDirection.y) * launchSpeed;
-                    }
-                    launch = true;*/
                     // 获取 Rigidbody2D 组件
                     Rigidbody2D rb = GetComponent<Rigidbody2D>();
                     if (rb != null)
@@ -147,22 +143,8 @@ public class PlayerController : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.G))
                 {
                     possession -= 1;
-                    // time duration
-                    //StartCoroutine(Gupside());
                     Gupside();
                 }
-                /*else if (Input.GetKeyDown(KeyCode.H))
-                {
-                    possession -= 1;
-                    // time duration
-                    StartCoroutine(Grightside(3f));
-                }
-                else if (Input.GetKeyDown(KeyCode.J))
-                {
-                    possession -= 1;
-                    // time duration
-                    StartCoroutine(Gleftside(3f));
-                }*/
 
             }
             if (haveftool)
@@ -181,6 +163,11 @@ public class PlayerController : MonoBehaviour
         {
             ReloadCurrentScene();
         }
+        // 如果重启的UI显示，并且玩家按下了O键，则重新加载当前场景
+        if (nextlevel.activeSelf && Input.GetKeyDown(KeyCode.O))
+        {
+            ReloadNextScene();
+        }
         // Check if the ESC key is pressed
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -198,28 +185,8 @@ public class PlayerController : MonoBehaviour
     }
     void Gupside()
     {
-        // Vector2 originalGravity = Physics2D.gravity;
-        // Physics2D.gravity = new Vector2(originalGravity.x, -originalGravity.y);
         Physics2D.gravity = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y);
-        // Physics2D.gravity = originalGravity;
     }
-    /*IEnumerator Grightside(float duration)
-    {
-        Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = new Vector2(-originalGravity.y, originalGravity.x);
-        Debug.Log(Physics2D.gravity);
-        yield return new WaitForSeconds(duration); 
-        Physics2D.gravity = originalGravity;
-    }
-    IEnumerator Gleftside(float duration)
-    {
-        Vector2 originalGravity = Physics2D.gravity;
-        Physics2D.gravity = new Vector2(originalGravity.y, originalGravity.x);
-        Debug.Log(Physics2D.gravity);
-        yield return new WaitForSeconds(duration); 
-        Physics2D.gravity = originalGravity; // 恢复重力
-    }*/
-
     void Jump()
     {
         Vector2 v = new Vector2(Physics2D.gravity.x, -Physics2D.gravity.y/9.8f);
@@ -247,7 +214,7 @@ public class PlayerController : MonoBehaviour
             spriteRenderer.color = Color.green; // 将球体颜色改为绿色
             Time.timeScale = 0; // 静止场景
             success.SetActive(true); 
-            restart.SetActive(true); 
+            nextlevel.SetActive(true); 
         }
 
     }
@@ -279,11 +246,10 @@ public class PlayerController : MonoBehaviour
     }
     IEnumerator TemporaryLoseGravity(float duration)
     {
-        float originalGravity = rb2d.gravityScale;
         rb2d.gravityScale = 0; // 玩家失去重力
         canMoveFreely = true; // 允许玩家自由移动
         yield return new WaitForSeconds(duration); // 等待指定时间
-        rb2d.gravityScale = originalGravity; // 恢复重力
+        rb2d.gravityScale = 1; // 恢复重力
         canMoveFreely = false; // 恢复正常移动限制
     }
     IEnumerator Immobilize(float time, GameObject other)
@@ -291,12 +257,9 @@ public class PlayerController : MonoBehaviour
         isImmobilized = true;
         rb2d.velocity = Vector2.zero;
         spriteRenderer.color = Color.red;
-        SpriteRenderer renderer = other.GetComponent<SpriteRenderer>();
-        renderer.color = Color.red;
         yield return new WaitForSeconds(time);
         isImmobilized = false;
         spriteRenderer.color = originalColor;
-        renderer.color = originalColor;
     }
     IEnumerator Cooldown()
     {
@@ -311,6 +274,14 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene(sceneIndex); // 根据索引重新加载场景
         possession = 0;
 
+        Vector2 originalGravity = Physics2D.gravity;
+        Physics2D.gravity = new Vector2(0, -9.81f);
+    }
+    void ReloadNextScene()
+    {
+        Time.timeScale = 1; // 场景运动
+        SceneManager.LoadScene(nextsceneName); // 加载指定场景
+        possession = 0;
         Vector2 originalGravity = Physics2D.gravity;
         Physics2D.gravity = new Vector2(0, -9.81f);
     }
