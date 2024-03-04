@@ -100,12 +100,12 @@ public class PlayerController : MonoBehaviour
                 directionIndicator.enabled = true;
 
                 // 调整发射方向
-                if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+                if (Input.GetKeyDown(KeyCode.W))
                 {
                     launchDirection = RotateVector2(launchDirection, 5); // 逆时针旋转
                     UpdateDirectionIndicator(); // 更新方向指示器
                 }
-                else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+                else if (Input.GetKeyDown(KeyCode.S))
                 {
                     launchDirection = RotateVector2(launchDirection, -5); // 顺时针旋转
                     UpdateDirectionIndicator(); // 更新方向指示器
@@ -117,8 +117,10 @@ public class PlayerController : MonoBehaviour
                     Rigidbody2D rb = GetComponent<Rigidbody2D>();
                     if (rb != null)
                     {
-                        // 应用一个冲量，而不是设置初速度
-                        rb.AddForce(new Vector2(launchDirection.x, launchDirection.y) * launchForce, ForceMode2D.Impulse);
+                        // 施加冲力
+                        //rb.AddForce(new Vector2(launchDirection.x, launchDirection.y) * launchForce, ForceMode2D.Impulse);
+                        rb.velocity = (new Vector3(launchDirection.x, launchDirection.y, 0)).normalized * launchForce;
+
                     }
                     launch = true;
                 }
@@ -234,7 +236,16 @@ public class PlayerController : MonoBehaviour
         float radians = degrees * Mathf.Deg2Rad;
         float sin = Mathf.Sin(radians);
         float cos = Mathf.Cos(radians);
-        return new Vector2(cos * v.x - sin * v.y, sin * v.x + cos * v.y);
+        // float angle = Mathf.Atan2(cos * v.x - sin * v.y, sin * v.x + cos * v.y) * Mathf.Rad2Deg;
+        //transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        // return new Vector2(cos * v.x - sin * v.y, sin * v.x + cos * v.y);
+        Vector2 rotatedV = new Vector2(cos * v.x - sin * v.y, sin * v.x + cos * v.y);
+    
+    // Log the coordinates of the new vector
+        Debug.Log($"Rotated Vector2: ({rotatedV.x}, {rotatedV.y})");
+
+    // Return the new vector
+        return rotatedV;
     }
 
     void OnTriggerEnter2D(Collider2D other)
